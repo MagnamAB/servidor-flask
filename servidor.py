@@ -10,7 +10,8 @@ USUARIO = os.environ.get("WP_USER", "RS_admin21")
 PASSWORD = os.environ.get("WP_PASSWORD", "86Uv iN27 RwS7 46sp IJqS d774")
 BASE_URL = "https://www.renovarser.com/wp-json"
 PAGES_URL = f"{BASE_URL}/wp/v2/pages"
-CSS_URL = f"{BASE_URL}/customizer/v1/css"  # ✅ Ruta corregida para obtener el CSS correcto
+CSS_URL = f"{BASE_URL}/wp/v2/settings"
+JS_URL = f"{BASE_URL}/custom/v1/javascript"
 
 @app.route("/")
 def home():
@@ -50,27 +51,6 @@ def obtener_contenido_pagina(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route("/pagina/nombre/<string:nombre>", methods=["GET"])
-def obtener_contenido_por_nombre(nombre):
-    """
-    Obtiene el contenido de una página específica por su nombre.
-    """
-    try:
-        response = requests.get(PAGES_URL, auth=(USUARIO, PASSWORD))
-        if response.status_code == 200:
-            paginas = response.json()
-            for p in paginas:
-                if p["title"]["rendered"].lower() == nombre.lower():
-                    return jsonify({
-                        "status": "success",
-                        "id": p["id"],
-                        "titulo": p["title"]["rendered"],
-                        "contenido": p["content"]["rendered"]
-                    })
-        return jsonify({"status": "error", "message": "Página no encontrada"}), 404
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 @app.route("/css", methods=["GET"])
 def obtener_css():
     """
@@ -80,11 +60,22 @@ def obtener_css():
         response = requests.get(CSS_URL, auth=(USUARIO, PASSWORD))
         if response.status_code == 200:
             css_data = response.json()
-            return jsonify({
-                "status": "success",
-                "css": css_data.get("custom_css", "No hay CSS personalizado")
-            })
+            return jsonify({"status": "success", "css": css_data.get("hello_elementor_settings_hello_style", "No hay CSS personalizado")})
         return jsonify({"status": "error", "message": "No se pudo obtener el CSS"}), response.status_code
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/javascript", methods=["GET"])
+def obtener_javascript():
+    """
+    Obtiene los scripts JavaScript personalizados desde WordPress.
+    """
+    try:
+        response = requests.get(JS_URL)
+        if response.status_code == 200:
+            js_data = response.json()
+            return jsonify({"status": "success", "javascript": js_data.get("javascript", "No hay scripts personalizados")})
+        return jsonify({"status": "error", "message": "No se pudo obtener los scripts"}), response.status_code
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
