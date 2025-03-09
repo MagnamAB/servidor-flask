@@ -5,7 +5,7 @@ import os
 # Configuración de Flask
 app = Flask(__name__)
 
-# Credenciales de WordPress (Usar variables de entorno para seguridad)
+# Credenciales de WordPress
 USUARIO = os.environ.get("WP_USER", "RS_admin21")
 PASSWORD = os.environ.get("WP_PASSWORD", "86Uv iN27 RwS7 46sp IJqS d774")
 URL = os.environ.get("WP_API_URL", "https://www.renovarser.com/wp-json/wp/v2/pages")
@@ -15,7 +15,7 @@ URL = os.environ.get("WP_API_URL", "https://www.renovarser.com/wp-json/wp/v2/pag
 def home():
     return jsonify({"status": "success", "message": "El servidor Flask está activo 🚀"})
 
-# Endpoint para obtener la lista de páginas de WordPress
+# Endpoint para obtener la lista de páginas
 @app.route('/paginas', methods=['GET'])
 def obtener_paginas():
     try:
@@ -28,7 +28,7 @@ def obtener_paginas():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Endpoint para obtener una página específica por su ID
+# Endpoint para obtener una página por ID
 @app.route('/pagina/<int:id>', methods=['GET'])
 def obtener_contenido_pagina(id):
     try:
@@ -41,6 +41,25 @@ def obtener_contenido_pagina(id):
                 "titulo": pagina["title"]["rendered"],
                 "contenido": pagina["content"]["rendered"]
             })
+        return jsonify({"status": "error", "message": "Página no encontrada"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Endpoint para obtener una página por nombre
+@app.route('/pagina/nombre/<string:nombre>', methods=['GET'])
+def obtener_contenido_por_nombre(nombre):
+    try:
+        response = requests.get(URL, auth=(USUARIO, PASSWORD))
+        if response.status_code == 200:
+            paginas = response.json()
+            for p in paginas:
+                if p["title"]["rendered"].lower() == nombre.lower():
+                    return jsonify({
+                        "status": "success",
+                        "id": p["id"],
+                        "titulo": p["title"]["rendered"],
+                        "contenido": p["content"]["rendered"]
+                    })
         return jsonify({"status": "error", "message": "Página no encontrada"}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
