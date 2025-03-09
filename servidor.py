@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 import requests
+import os
 
 # Configuración de Flask
 app = Flask(__name__)
@@ -10,6 +11,10 @@ PASSWORD = "86Uv iN27 RwS7 46sp IJqS d774"
 
 # URL de la API de WordPress
 URL = "https://www.renovarser.com/wp-json/wp/v2/pages"
+
+@app.route('/')  # 👈 Nueva ruta raíz para evitar el error 404
+def home():
+    return jsonify({"status": "success", "message": "El servidor Flask está activo 🚀"})
 
 @app.route('/paginas', methods=['GET'])
 def obtener_paginas():
@@ -31,8 +36,6 @@ def obtener_paginas():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Ejecutar el servidor
-import os
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
