@@ -10,7 +10,7 @@ USUARIO = os.environ.get("WP_USER", "RS_admin21")
 PASSWORD = os.environ.get("WP_PASSWORD", "86Uv iN27 RwS7 46sp IJqS d774")
 BASE_URL = "https://www.renovarser.com/wp-json"
 PAGES_URL = f"{BASE_URL}/wp/v2/pages"
-CSS_URL = f"{BASE_URL}/wp/v2/settings"
+CSS_URL = f"{BASE_URL}/customizer/v1/css"  # ✅ Ruta corregida para obtener el CSS correcto
 
 @app.route("/")
 def home():
@@ -80,7 +80,10 @@ def obtener_css():
         response = requests.get(CSS_URL, auth=(USUARIO, PASSWORD))
         if response.status_code == 200:
             css_data = response.json()
-            return jsonify({"status": "success", "css": css_data.get("hello_elementor_settings_hello_style", "No hay CSS personalizado")})
+            return jsonify({
+                "status": "success",
+                "css": css_data.get("custom_css", "No hay CSS personalizado")
+            })
         return jsonify({"status": "error", "message": "No se pudo obtener el CSS"}), response.status_code
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
