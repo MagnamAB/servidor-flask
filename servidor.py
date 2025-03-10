@@ -10,7 +10,7 @@ USUARIO = os.environ.get("WP_USER", "RS_admin21")
 PASSWORD = os.environ.get("WP_PASSWORD", "86Uv iN27 RwS7 46sp IJqS d774")
 BASE_URL = "https://www.renovarser.com/wp-json"
 PAGES_URL = f"{BASE_URL}/wp/v2/pages"
-CSS_URL = f"{BASE_URL}/wp/v2/settings"
+CSS_URL = f"{BASE_URL}/custom/v1/css"
 JS_URL = f"{BASE_URL}/custom/v1/javascript"
 
 @app.route("/")
@@ -57,10 +57,13 @@ def obtener_css():
     Obtiene el CSS personalizado desde WordPress.
     """
     try:
-        response = requests.get(CSS_URL, auth=(USUARIO, PASSWORD))
+        response = requests.get(CSS_URL)
         if response.status_code == 200:
             css_data = response.json()
-            return jsonify({"status": "success", "css": css_data.get("hello_elementor_settings_hello_style", "No hay CSS personalizado")})
+            custom_css = css_data.get("custom_css", "").strip()
+            if not custom_css:
+                return jsonify({"status": "error", "message": "No hay CSS personalizado"})
+            return jsonify({"status": "success", "css": custom_css})
         return jsonify({"status": "error", "message": "No se pudo obtener el CSS"}), response.status_code
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -74,7 +77,10 @@ def obtener_javascript():
         response = requests.get(JS_URL)
         if response.status_code == 200:
             js_data = response.json()
-            return jsonify({"status": "success", "javascript": js_data.get("javascript", "No hay scripts personalizados")})
+            custom_js = js_data.get("custom_js", "").strip()
+            if not custom_js or custom_js == "/* No hay JavaScript personalizado en WordPress */":
+                return jsonify({"status": "error", "message": "No hay scripts personalizados"})
+            return jsonify({"status": "success", "javascript": custom_js})
         return jsonify({"status": "error", "message": "No se pudo obtener los scripts"}), response.status_code
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
